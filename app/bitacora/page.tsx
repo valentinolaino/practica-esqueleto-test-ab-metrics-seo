@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { isDatabaseConfigured, readCounts } from '@/lib/db'
 import {
@@ -85,6 +86,20 @@ export default async function BitacoraPage() {
 
       <section className="flex flex-col gap-4">
         <h2 className="font-serif text-2xl">Caso de prueba fijo</h2>
+        <figure className="flex flex-col gap-2">
+          <Image
+            src="/caso-de-prueba.svg"
+            alt="Gráfico de barras: la variante A convierte 7,50% y la B 13,14%. La diferencia es 5,64 puntos porcentuales."
+            width={960}
+            height={540}
+            className="w-full rounded-lg border border-border"
+            priority={false}
+          />
+          <figcaption className="text-sm text-muted-foreground">
+            La tasa sale de la fórmula, no está escrita a mano: A 18/240 = 7,50%, B 31/236 = 13,14%, y la
+            diferencia es 5,64 pp.
+          </figcaption>
+        </figure>
         <StatsTable
           log={TEST_CASE}
           caption="Cohorte fija. Tiene que dar A 7,50%, B 13,14% y la diferencia 5,64 pp, aunque nadie haya entrado."

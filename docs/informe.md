@@ -29,7 +29,7 @@ primer response, sin JavaScript de por medio.
 Esto **no es cloaking**. Cloaking es mostrarle una cosa al buscador y otra a la persona para manipular el
 ranking. Acá la página es la misma para todos, en la misma URL y con el mismo canonical; simplemente el crawler
 sin cookie recibe el control, que es una variante legítima del mismo experimento y no un texto fabricado para
-el bot.
+el bot. No hace falta detectar el user-agent: alcanza con que un request sin cookie caiga en el control.
 
 ## 3. Por qué el canonical no cambia
 
