@@ -3,6 +3,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // `pg` es un driver de Node: no se empaqueta, se resuelve en runtime.
+  serverExternalPackages: ['pg'],
   async headers() {
     return [
       {

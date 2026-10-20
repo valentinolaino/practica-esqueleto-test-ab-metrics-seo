@@ -5,16 +5,19 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "check": "node scripts/check-experiment.mjs"
   },
   "dependencies": {
     "next": "16.4.0",
+    "pg": "^8.23.1",
     "react": "^19",
     "react-dom": "^19"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",

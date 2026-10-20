@@ -15,6 +15,15 @@ export const COOKIE = {
   converted: 'lab_converted',
 } as const
 
+/** Nombre del hash, para documentar la asignación en la bitácora y el informe. */
+export const HASH_NAME = 'FNV-1a de 32 bits'
+
+/** Headers que el proxy usa para pasar visitante y variante al render del mismo request. */
+export const HEADER = {
+  visitor: 'x-lab-visitor',
+  variant: 'x-lab-variant',
+} as const
+
 export const THIRTY_DAYS = 60 * 60 * 24 * 30
 export const SESSION_WINDOW = 60 * 30
 export const CANONICAL_PATH = '/practica'
@@ -71,14 +80,33 @@ export function emptyLog(): ExperimentLog {
   }
 }
 
-export function assignVariant(_visitorId: string): Variant {
-  // TODO: hash estable. El mismo id tiene que devolver siempre la misma variante.
-  return 'a'
+/**
+ * FNV-1a de 32 bits. Determinístico y sin dependencias: el mismo id devuelve
+ * siempre el mismo entero, en cualquier proceso y en cualquier máquina.
+ * Se usa para derivar la variante del visitante (ver assignVariant).
+ */
+export function fnv1a(input: string): number {
+  let hash = 0x811c9dc5
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return hash >>> 0
 }
 
-export function conversionRate(_stats: VariantStats): number | null {
-  // TODO: conversiones / impresiones. Sin impresiones, devolver null, no 0.
-  return null
+/**
+ * Asignación estable: la variante sale del hash del visitante, nunca de un
+ * sorteo por render. Repetir el id cae siempre en la misma variante.
+ * Reparto 50/50 sobre el bit menos significativo del hash.
+ */
+export function assignVariant(visitorId: string): Variant {
+  return fnv1a(visitorId) % 2 === 0 ? 'a' : 'b'
+}
+
+export function conversionRate(stats: VariantStats): number | null {
+  if (!Number.isFinite(stats.impressions) || stats.impressions <= 0) return null
+  if (!Number.isFinite(stats.conversions) || stats.conversions < 0) return null
+  return stats.conversions / stats.impressions
 }
 
 export function rateGap(log: ExperimentLog): number | null {
@@ -88,9 +116,36 @@ export function rateGap(log: ExperimentLog): number | null {
   return (treatment - control) * 100
 }
 
-export function parseLog(_raw: string | undefined): ExperimentLog {
-  // TODO: validar el JSON antes de usarlo. Si falla, log vacío.
-  return emptyLog()
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0
+}
+
+/**
+ * Valida un valor ya deserializado contra la forma del log. Si cualquier
+ * variante no trae impresiones y conversiones enteras no negativas, se
+ * descarta todo y se devuelve un log vacío.
+ */
+export function validateLog(value: unknown): ExperimentLog {
+  if (typeof value !== 'object' || value === null) return emptyLog()
+  const record = value as Record<string, unknown>
+  const log = emptyLog()
+  for (const variant of ['a', 'b'] as const) {
+    const stats = record[variant]
+    if (typeof stats !== 'object' || stats === null) return emptyLog()
+    const { impressions, conversions } = stats as Record<string, unknown>
+    if (!isNonNegativeInteger(impressions) || !isNonNegativeInteger(conversions)) return emptyLog()
+    log[variant] = { impressions, conversions }
+  }
+  return log
+}
+
+export function parseLog(raw: string | undefined): ExperimentLog {
+  if (!raw) return emptyLog()
+  try {
+    return validateLog(JSON.parse(raw))
+  } catch {
+    return emptyLog()
+  }
 }
 
 export function serializeLog(log: ExperimentLog): string {
