@@ -55,6 +55,6 @@ Prueba: `assignVariant('lab-visitor-demo-01')` → **B**, y repetir el cálculo 
 Los porcentajes salen de la fórmula, no están escritos a mano. Una tasa más alta no es una prueba: no se declara
 ganador.
 
-Dos URL: la de /practica y la de /bitacora.
+Dos URL: http://localhost:3000/practica y http://localhost:3000/bitacora.
 
 **El log de eventos de la entrega persiste en una base.** Una cookie alcanza para el visitante y la variante. No alcanza para los conteos.
